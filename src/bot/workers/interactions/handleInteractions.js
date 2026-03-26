@@ -1,8 +1,8 @@
 import path from "path";
 import { loadCommandsFromDir } from "./loadCommands.js";
-import { Flags } from "../../../plugins/flags/message.js";
+import { Flags } from "../../../common/flags/message.js";
 import { getTicTacToeButtons } from "../../../tools/commands/tictactoe.js";
-import { basicEmbed } from "../../../plugins/msg/templates/embeds.js";
+import { basicEmbed } from "../../../common/msg/templates/embeds.js";
 
 function handleInteractionError(interaction)
 {
@@ -33,15 +33,13 @@ export default async function handleInteractions({ client })
 	const commandsDir = path.join(process.cwd(), "src", "bot", "commands");
 	const { commands } = await loadCommandsFromDir(commandsDir);
 
-	client.commands = client.commands ?? new Map();
 	for (const c of commands)
 	{
 		const name = c.data.name ?? c.data.toJSON?.().name;
-		if (!name) 
+		if (name) 
 		{
-			continue;
+			client.commands.set(name, c.data);
 		}
-		client.commands.set(name, c.module);
 	}
 
 	client.on("interactionCreate", async (interaction) =>
@@ -69,6 +67,7 @@ export default async function handleInteractions({ client })
 		if (interaction.isMessageContextMenuCommand())
 		{
 			const cmd = client.commands.get(interaction.commandName);
+			console.log(cmd);
 			if (!cmd)
 			{
 				console.warn(`No module found for context menu command ${interaction.commandName}`);
